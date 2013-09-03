@@ -1,7 +1,7 @@
-min_postmen_cover
-=================
-
-My Final Year Academic Project.
+Minimum Postmen Cover
+=====================
+My Final Year Academic Project
+------------------------------
 
 Problem:
 To cover all the edges of a given graph using minimum number of paths keeping the total path weight within a given constraint Q.
