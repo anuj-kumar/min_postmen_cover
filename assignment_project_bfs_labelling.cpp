@@ -186,11 +186,11 @@ public:
 			cout<<"Path "<<count<<" : ";
 
 			while(!source.empty()) {
-				cout<<source.top().first<<","<<source.top().second<<" ";
+				cout<<"("<<source.top().first<<","<<source.top().second<<") -> ";
 				source.pop();
 			}
 			while(!sink.empty()) {
-				cout<<sink.top().first<<","<<sink.top().second<<" ";
+				cout<<"("<<sink.top().first<<","<<sink.top().second<<") -> ";
 				sink.pop();
 			}
 			cout<<"(length = "<<path_length<<")"<<endl;
