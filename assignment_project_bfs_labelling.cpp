@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <cmath>
-#define size 5
+#define size 19
 using namespace std;
 class graph {
 public:
@@ -11,8 +11,9 @@ public:
 	graph() {
  		memset(label_source, 0, sizeof(int)*size*size);
 		memset(label_sink, 0, sizeof(int)*size*size);
+		memset(adj, 0, sizeof(int)*size*size*4);
 		source_p = 0;
-		sink_p = 4;
+		sink_p = 17;
 	}
 	
 	void read_input() {
@@ -32,22 +33,22 @@ public:
 		}
 		for(i=0; i<size; i++) {
 			for(j=1; j<size; j++) {
-				adj[i][j][0] = input[i][j-1];
+				if(input[i][j]) adj[i][j][0] = input[i][j-1];
 			}
 		}
 		for(i=1; i<size; i++) {
 			for(j=0; j<size; j++) {
-				adj[i][j][1] = input[i-1][j];
+				if(input[i][j]) adj[i][j][1] = input[i-1][j];
 			}
 		}
 		for(i=0; i<size; i++) {
 			for(j=0; j<size-1; j++) {
-				adj[i][j][2] = input[i][j+1];
+				if(input[i][j]) adj[i][j][2] = input[i][j+1];
 			}
 		}
 		for(i=0; i<size-1; i++) {
 			for(j=0; j<size; j++) {
-				adj[i][j][3] = input[i+1][j];
+				if(input[i][j]) adj[i][j][3] = input[i+1][j];
 			}
 		}
 		memcpy(adj_c, adj, sizeof(bool)*size*size*4);
@@ -72,13 +73,13 @@ public:
 	int cr_b_i, cr_b_j, cr_e_i, cr_e_j, i, j;
 	int find_critical_edge() {
 		int i, j;
-		for(i=0; i<size; i++) {
+		/*for(i=0; i<size; i++) {
 			for(j=0; j<size; j++) {
 				for(int k=0; k<4; k++) cout<<adj_c[i][j][k]<<" ";
 				cout<<"   ";
 			}
 			cout<<endl;
-		}
+		}*/
 		for(j=size-1; j>=0; j--)
 		{
 			for(i=0; i<size; i++)
@@ -104,6 +105,7 @@ public:
 				}
 			}
 		}
+		/* all edges got covered */
 		if( i==size && j==-1) cr_b_i = -1;//finish
 		/*find path from source*/
 	}
@@ -116,8 +118,8 @@ public:
 			int max_path_length = 0, count = 1;
 			i = cr_b_i;
 			j = cr_b_j;
-			cout<<i<<" "<<j<<endl;
-			cout<<"Source: "<<endl;
+			//cout<<i<<" "<<j<<endl;
+			//cout<<"Source: "<<endl;
 			while(i>source_p || j>0) {
 				cout<<i<<","<<j<<" ";
 				if(adj_c[i][j][1] && (label_source[i][j] == label_source[i-1][j]+1)) {
@@ -133,35 +135,35 @@ public:
 				else adj[i][j][0] ? j-- : i--;
 				count++;
 			}
-			cout<<endl;
+			//cout<<endl;
 			i = cr_e_i;
 			j = cr_e_j;
-			cout<<"Sink: "<<endl;
+			//cout<<"Sink: "<<endl;
 			while(i!=sink_p || j>0) {
 				cout<<i<<","<<j<<" ";
-				if(adj_c[i][j][3] && (label_sink[i][j] == label_sink[i+1][j]+1)) {
-					adj_c[i][j][3] = 0;
-					adj_c[i+1][j][1] = 0;
-					i++;
-				}
-				else if(adj_c[i][j][0] && (label_sink[i][j] == label_sink[i][j-1]+1)) {
+				if(adj_c[i][j][0] && (label_sink[i][j] == label_sink[i][j-1]+1)) {
 					adj_c[i][j][0] = 0;
 					adj_c[i][j-1][2] = 0;
 					j--;
 				}
-				else if(adj_c[i][j][1] && (label_sink[i][j] == label_sink[i-1][j]+1)) {
+				else if(adj_c[i][j][3] && (label_sink[i][j] == label_sink[i+1][j]+1)) {
+					adj_c[i][j][3] = 0;
+					adj_c[i+1][j][1] = 0;
+					i++;
+				}
+				else if(adj_c[i][j][1] && (label_sink[i][j] == label_sink[i-1][j]+1) && i > sink_p) {
 					adj_c[i][j][1] = 0;
 					adj_c[i-1][j][3] = 0;
 					i--;
 				}
-				else if(adj[i][j][3]) i++;
 				else if(adj[i][j][0]) j--;
+				else if(adj[i][j][3]) i++;
 				else i--;
 				count++;
 				if(!max_path_length) max_path_length = count;
 			}
 			cout<<endl;
-			getchar();
+			//getchar();
 		}
 	}
 };
