@@ -36,3 +36,8 @@ nosetests.xml
 
 #Backup files
 *~
+
+#Output Files
+a
+a.out
+a.o

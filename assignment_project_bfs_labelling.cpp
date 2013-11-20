@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <cmath>
+#include <stack>
+#include <utility>
 #define size 19
 using namespace std;
 class graph {
@@ -92,6 +94,7 @@ public:
 					cr_e_i=i;
 					cr_e_j=j;
 					adj_c[i][j][1] = 0;
+					adj_c[i][j][3] = 0;
 					return 0;
 				}
 				else if(adj_c[i][j][0])
@@ -101,6 +104,7 @@ public:
 					cr_e_i=i;
 					cr_e_j=j;
 					adj_c[i][j][0] = 0;
+					adj_c[i][j-1][2] = 0;
 					return 0;
 				}
 			}
@@ -110,18 +114,29 @@ public:
 		/*find path from source*/
 	}
 	void find_paths() {
+		int total_path_length = 0, count = 0;
 		make_adj();
 		assign_label();
 		while(1) {
+
 			find_critical_edge();
 			if(cr_b_i == -1) break;
-			int max_path_length = 0, count = 1;
+
+			count++;
+
+			int max_path_length = 0, path_length = 1;
 			i = cr_b_i;
 			j = cr_b_j;
-			//cout<<i<<" "<<j<<endl;
-			//cout<<"Source: "<<endl;
+
+			path_length = label_source[cr_b_i][cr_b_j] + label_sink[cr_e_i][cr_e_j] + 1;
+
+			if(!max_path_length) max_path_length = path_length;
+
+			total_path_length += path_length;
+			stack< pair<int, int> > source, sink;
+			source.push(make_pair(cr_e_i, cr_e_j));
 			while(i>source_p || j>0) {
-				cout<<i<<","<<j<<" ";
+				source.push(make_pair(i, j));
 				if(adj_c[i][j][1] && (label_source[i][j] == label_source[i-1][j]+1)) {
 					adj_c[i][j][1] = 0;
 					adj_c[i-1][j][3] = 0;
@@ -133,17 +148,22 @@ public:
 					j--;
 				}
 				else adj[i][j][0] ? j-- : i--;
-				count++;
 			}
-			//cout<<endl;
+
+			source.push(make_pair(source_p, 0));
 			i = cr_e_i;
 			j = cr_e_j;
-			//cout<<"Sink: "<<endl;
+
 			while(i!=sink_p || j>0) {
-				cout<<i<<","<<j<<" ";
+				//cout<<i<<","<<j<<" ";
+				sink.push(make_pair(i, j));
 				if(adj_c[i][j][0] && (label_sink[i][j] == label_sink[i][j-1]+1)) {
 					adj_c[i][j][0] = 0;
 					adj_c[i][j-1][2] = 0;
+					/*if(max_path_length >= path_length+2) {
+						int k = i, l = j, slag;
+						while(k>=0 && adj_c[k][l][1] && slag) {k--;}
+					}*/
 					j--;
 				}
 				else if(adj_c[i][j][3] && (label_sink[i][j] == label_sink[i+1][j]+1)) {
@@ -159,12 +179,27 @@ public:
 				else if(adj[i][j][0]) j--;
 				else if(adj[i][j][3]) i++;
 				else i--;
-				count++;
-				if(!max_path_length) max_path_length = count;
+				if(!max_path_length) max_path_length = path_length;
 			}
-			cout<<endl;
 			//getchar();
+			sink.push(make_pair(sink_p, 0));
+			cout<<"Path "<<count<<" : ";
+
+			while(!source.empty()) {
+				cout<<source.top().first<<","<<source.top().second<<" ";
+				source.pop();
+			}
+			while(!sink.empty()) {
+				cout<<sink.top().first<<","<<sink.top().second<<" ";
+				sink.pop();
+			}
+			cout<<"(length = "<<path_length<<")"<<endl;
+
 		}
+
+		cout<<"Number of paths : "<<count<<endl;
+		cout<<"Total path length : "<<total_path_length;
+
 	}
 };
 int main() {
