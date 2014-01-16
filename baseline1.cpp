@@ -4,6 +4,10 @@
 #include <cmath>
 #include <stack>
 #include <utility>
+#include <vector>
+#include <cstdlib>
+#include <algorithm>
+#include <ctime>
 #define size 19
 using namespace std;
 
@@ -68,52 +72,54 @@ public:
                 }
             }
         }
+        /*for(i=0; i<size; i++) {
+                for(j=0; j<size; j++) cout<<"("<<label_source[i][j]<<", "<<label_sink[i][j]<<") ";
+                cout<<endl;
+        }*/
     }
 
     int cr_b_i, cr_b_j, cr_e_i, cr_e_j, i, j;
+    vector<pair <pair <int, int>, pair <int, int> > > unvisited;
 
-    int find_critical_edge() {
+    void make_unvisited_edge_set() {
         int i, j;
-        for (i = 0; i < size; i++) {
-            for (j = 0; j < size; j++) {
+        for (i = 0; i < size - 1; i++) {
+            for (j = 0; j < size - 1; j++) {
                 if (adj_c[i][j][2]) {
-                    cr_b_i = i;
-                    cr_b_j = j;
-                    cr_e_i = i;
-                    cr_e_j = j + 1;
-                    adj_c[i][j][2] = 0;
-                    adj_c[i][j + 1][0] = 0;
-                    return 0;
-                } else if (adj_c[i][j][3]) {
-                    cr_b_i = i;
-                    cr_b_j = j;
-                    cr_e_i = i + 1;
-                    cr_e_j = j;
-                    adj_c[i][j][3] = 0;
-                    adj_c[i + 1][j][1] = 0;
-                    return 0;
-                } else if (adj_c[i][j][0]) {
-                    cr_b_i = i;
-                    cr_b_j = j - 1;
-                    cr_e_i = i;
-                    cr_e_j = j;
-                    adj_c[i][j][0] = 0;
-                    adj_c[i][j - 1][2] = 0;
-                    return 0;
-                } else if (adj_c[i][j][1]) {
-                    cr_b_i = i - 1;
-                    cr_b_j = j;
-                    cr_e_i = i;
-                    cr_e_j = j;
-                    adj_c[i][j][1] = 0;
-                    adj_c[i - 1][j][3] = 0;
-                    return 0;
+                    unvisited.push_back(make_pair(make_pair(i, j), make_pair(i, j + 1)));
+                }
+                if (adj_c[i][j][3]) {
+                    unvisited.push_back(make_pair(make_pair(i, j), make_pair(i + 1, j)));
                 }
             }
         }
-        /* all edges got covered */
-        if (i == size && j == size) cr_b_i = -1; //finish
-        /*find path from source*/
+        srand(unsigned ( time(0)));
+        random_shuffle(unvisited.begin(), unvisited.end());
+    }
+
+    int find_critical_edge() {
+        unvisited.clear();
+        make_unvisited_edge_set();
+        int i, j;
+        if (unvisited.empty()) {
+            cr_b_i = -1;
+            return 0;
+        }
+        cr_b_i = unvisited.back().first.first;
+        cr_b_j = unvisited.back().first.second;
+        cr_e_i = unvisited.back().second.first;
+        cr_e_j = unvisited.back().second.second;
+        unvisited.pop_back();
+        if (cr_b_i == cr_e_i) {
+            adj_c[cr_b_i][cr_b_j][2] = 0;
+            adj_c[cr_e_i][cr_e_j][0] = 0;
+            return 0;
+        }
+        else {
+            adj_c[cr_b_i][cr_b_j][3] = 0;
+            adj_c[cr_e_i][cr_e_j][1] = 0;
+            return 0;
+        }
     }
 
     void find_paths() {
@@ -133,7 +139,7 @@ public:
 
             path_length = label_source[cr_b_i][cr_b_j] + label_sink[cr_e_i][cr_e_j] + 1;
 
-            if (!max_path_length) max_path_length = path_length;
+			if (max_path_length < path_length) max_path_length = path_length;
 
             total_path_length += path_length;
             stack< pair<int, int> > source, sink;
@@ -144,11 +150,13 @@ public:
                     adj_c[i][j][1] = 0;
                     adj_c[i - 1][j][3] = 0;
                     i--;
-                } else if (adj_c[i][j][0] && (label_source[i][j] == label_source[i][j - 1] + 1)) {
+                }
+                else if (adj_c[i][j][0] && (label_source[i][j] == label_source[i][j - 1] + 1)) {
                     adj_c[i][j][0] = 0;
                     adj_c[i][j - 1][2] = 0;
                     j--;
-                } else adj[i][j][0] ? j-- : i--;
+                }
+                else adj[i][j][0] ? j-- : i--;
             }
 
             source.push(make_pair(source_p, 0));
@@ -161,15 +169,18 @@ public:
                     adj_c[i][j][0] = 0;
                     adj_c[i][j - 1][2] = 0;
                     j--;
-                } else if (adj_c[i][j][3] && (label_sink[i][j] == label_sink[i + 1][j] + 1)) {
+                }
+                else if (adj_c[i][j][3] && (label_sink[i][j] == label_sink[i + 1][j] + 1)) {
                     adj_c[i][j][3] = 0;
                     adj_c[i + 1][j][1] = 0;
                     i++;
-                } else if (adj_c[i][j][1] && (label_sink[i][j] == label_sink[i - 1][j] + 1) && i > sink_p) {
+                }
+                else if (adj_c[i][j][1] && (label_sink[i][j] == label_sink[i - 1][j] + 1) && i > sink_p) {
                     adj_c[i][j][1] = 0;
                     adj_c[i - 1][j][3] = 0;
                     i--;
-                } else if (adj[i][j][0]) j--;
+                }
+                else if (adj[i][j][0]) j--;
                 else if (adj[i][j][3]) i++;
                 else i--;
                 if (!max_path_length) max_path_length = path_length;
@@ -182,7 +193,7 @@ public:
                 source.pop();
             }
             while (!sink.empty()) {
-                cout << "(" << sink.top().first << "," << sink.top().second << ") -> ";
+				cout << "(" << sink.top().first << "," << sink.top().second << ") -> ";
                 sink.pop();
             }
             cout << "(length = " << path_length << ")" << endl;
