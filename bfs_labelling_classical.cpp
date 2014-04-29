@@ -16,7 +16,8 @@ class graph {
 public:
     vector<int> adj[SIZE], adj_c[SIZE];
     int numOfVertices, numOfEdges, label_source[SIZE], label_sink[SIZE], source, sink;
-	set<int> unvisited_vertices;
+    set<int> unvisited_vertices;
+
     graph() {
         numOfVertices = 0;
         memset(label_source, 0, sizeof (int) *SIZE);
@@ -37,7 +38,7 @@ public:
             adj_c[m].push_back(n);
             adj_c[n].push_back(m);
         }
-        for(i=0; i<numOfVertices; i++) unvisited_vertices.insert(i);
+        for (i = 0; i < numOfVertices; i++) unvisited_vertices.insert(i);
         /*for(i=0; i<numOfVertices; i++) {
                         for(j=0; j<adj[i].size(); j++) cout<<adj[i][j]<<" ";
                         cout<<endl;
@@ -52,7 +53,6 @@ public:
         while (!q.empty()) {
             int u, v;
             u = q.front();
-            //cout<<u<<endl;
             isvisited[u] = true;
             q.pop();
             for (v = 0; v < adj[u].size(); v++) {
@@ -68,49 +68,46 @@ public:
     }
 
     void make_unvisited_vertex_set() {
-		for(int i=0; i<numOfVertices; i++) {
-			if( !adj_c[i].size()) unvisited_vertices.erase(i);
-		}
-		//random_shuffle(unvisited_vertices.begin(), unvisited_vertices.end());
+        for (int i = 0; i < numOfVertices; i++) {
+            if (adj_c[i].size()==0) unvisited_vertices.erase(i);
+        }
     }
 
-    int find_random_critical_vertex() {
-		make_unvisited_vertex_set();
-		//srand(time(NULL));
-		int random = rand() % unvisited_vertices.size();
-		std::set<int>::iterator it=unvisited_vertices.begin();
-		for (int i=0; i<=random; i++) it++;
-		return (*it);
-	}
+    int find_random_vertex() {
+        make_unvisited_vertex_set();
+        int random = rand() % unvisited_vertices.size();
+        std::set<int>::iterator it = unvisited_vertices.begin();
+        for (int i = 0; i <= random; i++) it++;
+        return (*it);
+    }
 
     int find_critical_vertex() {
         int i, cr_v;
-		while(!adj_c[cr_v].size()) cr_v++;
-        //cout<<"Size="<<adj_c[2].size()<<endl;
+        while (!adj_c[cr_v].size()) cr_v++;
         for (i = 0; i < numOfVertices; i++) {
-			if (adj_c[i].size() && (label_sink[i] + label_source[i] > label_sink[cr_v] + label_source[cr_v])) cr_v = i;
+            if (adj_c[i].size() && (label_sink[i] + label_source[i] > label_sink[cr_v] + label_source[cr_v])) cr_v = i;
         }
         return cr_v;
     }
 
     void find_paths() {
-		int total_path_length = 0, i, j, count = numOfEdges, numberOfPaths = 0, longest_path_length;
+        int total_path_length = 0, i, j, count = numOfEdges, numberOfPaths = 0, longest_path_length;
         stack<int> s;
         bfs(source, 's');
         bfs(sink, 'd');
-		longest_path_length = label_source[find_critical_vertex()] + label_source[find_critical_vertex()] + 1;
-        while (count > 0) {
+
+		while (count > 0) {
             int cr_v, buff, buff_t, numOfNeighb;
-			bool flag = true;
-            cr_v = buff = find_critical_vertex();
-            //cout << "count=" << count << endl;
-            while (buff != source) {
-                //cout << buff << endl;
-                total_path_length++;
-				s.push(buff);
-                flag=1;
-				numOfNeighb = adj_c[buff].size();
-				for (i = 0; i < adj_c[buff].size(); i++) {
+            bool flag = true;
+			cr_v = buff = find_critical_vertex()
+						 //find_random_vertex()
+						;
+			if( longest_path_length < label_source[cr_v] + label_sink[cr_v] + 1) longest_path_length = label_source[cr_v] + label_sink[cr_v] + 1;
+			while (buff != source) {
+                s.push(buff);
+                flag = 1;
+                numOfNeighb = adj_c[buff].size();
+                for (i = 0; i < adj_c[buff].size(); i++) {
                     if (label_source[buff] == label_source[adj_c[buff][i]] + 1) {
                         buff_t = adj_c[buff][i];
 
@@ -124,9 +121,9 @@ public:
                             }
                         }
                         adj_c[buff].erase(adj_c[buff].begin() + i);
-						
+
                         buff = buff_t;
-						flag = 0;
+                        flag = 0;
                         break;
                     }
                 }
@@ -140,35 +137,36 @@ public:
                 }
             }
             s.push(source);
-			while(!s.empty()) {
-				cout<<s.top()<<" ";
-				s.pop();
-			}
+			int path_length = s.size();
+            while (!s.empty()) {
+                cout << s.top() << "->";
+                s.pop();
+            }
             buff = cr_v;
             while (buff != sink) {
-				total_path_length++;
-				flag=1;
+				path_length++;
+                flag = 1;
                 numOfNeighb = adj_c[buff].size();
-				for (i = 0; i < adj_c[buff].size(); i++) {
+                for (i = 0; i < adj_c[buff].size(); i++) {
                     if (label_sink[buff] == label_sink[adj_c[buff][i]] + 1) {
                         //cout << "Copy" << endl;
-						buff_t = adj_c[buff][i];
+                        buff_t = adj_c[buff][i];
 
                         count--;
 
                         //delete the edge
                         for (j = 0; j < adj_c[buff_t].size(); j++) {
                             if (adj_c[buff_t][j] == buff) {
-								//cout<<"Deleted Foredge "<<buff<<endl;
+                                //cout<<"Deleted Foredge "<<buff<<endl;
                                 adj_c[buff_t].erase(adj_c[buff_t].begin() + j);
                                 break;
                             }
                         }
                         //cout<<"Deleted Backedge "<<buff_t<<endl;
-						adj_c[buff].erase(adj_c[buff].begin() + i);
+                        adj_c[buff].erase(adj_c[buff].begin() + i);
 
                         buff = buff_t;
-						flag = 0;
+                        flag = 0;
                         break;
                     }
                 }
@@ -181,17 +179,19 @@ public:
                         }
                     }
                 }
-                cout << buff <<" "; //" size 18:" << adj_c[18].size() << " ";
-			}
-			cout<<endl;
-			numberOfPaths++;
-			cout<<"";
+                cout << buff << "->";
+            }
+            total_path_length += path_length;
+			cout<<"(Path Length : "<<path_length<<")";
+			cout << endl;
+            numberOfPaths++;
+            cout << "";
         }
         //cout<<count;
-		cout<<"Number Of paths: "<<numberOfPaths<<endl;
-		cout<<"Length of the longest path: "<<longest_path_length<<endl;
-		cout<<"Total path length: "<<total_path_length<<endl;
-	}
+        cout << "Number Of paths: " << numberOfPaths << endl;
+        cout << "Length of the longest path: " << longest_path_length << endl;
+        cout << "Total path length: " << total_path_length << endl;
+    }
 };
 
 int main() {

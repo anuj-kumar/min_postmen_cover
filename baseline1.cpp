@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <cmath>
 #include <stack>
+#include <queue>
 #include <utility>
 #include <vector>
 #include <cstdlib>
@@ -142,8 +143,9 @@ public:
 			if (max_path_length < path_length) max_path_length = path_length;
 
             total_path_length += path_length;
-            stack< pair<int, int> > source, sink;
-            source.push(make_pair(cr_e_i, cr_e_j));
+            stack< pair<int, int> > source;
+			queue< pair<int, int> > sink;
+            //source.push(make_pair(cr_e_i, cr_e_j));
             while (i > source_p || j > 0) {
                 source.push(make_pair(i, j));
                 if (adj_c[i][j][1] && (label_source[i][j] == label_source[i - 1][j] + 1)) {
@@ -193,7 +195,7 @@ public:
                 source.pop();
             }
             while (!sink.empty()) {
-				cout << "(" << sink.top().first << "," << sink.top().second << ") -> ";
+				cout << "(" << sink.front().first << "," << sink.front().second << ") -> ";
                 sink.pop();
             }
             cout << "(length = " << path_length << ")" << endl;
