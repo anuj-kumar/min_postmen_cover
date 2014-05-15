@@ -17,6 +17,7 @@ public:
     vector<int> adj[SIZE], adj_c[SIZE];
     int numOfVertices, numOfEdges, label_source[SIZE], label_sink[SIZE], source, sink;
     set<int> unvisited_vertices;
+	bool baseline;
 
     graph() {
         numOfVertices = 0;
@@ -25,7 +26,9 @@ public:
         memset(adj, 0, sizeof (int) *SIZE);
         source = 0;
         sink = 0;
-    }
+		baseline = false;
+		srand(time(0));
+	}
 
     void read_input() {
         int i, j, m, n;
@@ -77,7 +80,7 @@ public:
         make_unvisited_vertex_set();
         int random = rand() % unvisited_vertices.size();
         std::set<int>::iterator it = unvisited_vertices.begin();
-        for (int i = 0; i <= random; i++) it++;
+        for (int i = 0; i < random; i++) it++;
         return (*it);
     }
 
@@ -91,7 +94,7 @@ public:
     }
 
     void find_paths() {
-        int total_path_length = 0, i, j, count = numOfEdges, numberOfPaths = 0, longest_path_length;
+        int total_path_length = 0, i, j, count = numOfEdges, numberOfPaths = 0, longest_path_length=0;
         stack<int> s;
         bfs(source, 's');
         bfs(sink, 'd');
@@ -99,9 +102,9 @@ public:
 		while (count > 0) {
             int cr_v, buff, buff_t, numOfNeighb;
             bool flag = true;
-			cr_v = buff = find_critical_vertex()
-						 //find_random_vertex()
-						;
+
+			cr_v = buff = ( baseline ? find_random_vertex() : find_critical_vertex() );
+
 			if( longest_path_length < label_source[cr_v] + label_sink[cr_v] + 1) longest_path_length = label_source[cr_v] + label_sink[cr_v] + 1;
 			while (buff != source) {
                 s.push(buff);
@@ -149,7 +152,6 @@ public:
                 numOfNeighb = adj_c[buff].size();
                 for (i = 0; i < adj_c[buff].size(); i++) {
                     if (label_sink[buff] == label_sink[adj_c[buff][i]] + 1) {
-                        //cout << "Copy" << endl;
                         buff_t = adj_c[buff][i];
 
                         count--;
@@ -171,7 +173,6 @@ public:
                     }
                 }
                 if (flag) {
-                    //cout<<"Original"<<endl;
                     for (i = 0; i < adj[buff].size(); i++) {
                         if (label_sink[buff] == label_sink[adj[buff][i]] + 1) {
                             buff = adj[buff][i];
@@ -187,15 +188,15 @@ public:
             numberOfPaths++;
             cout << "";
         }
-        //cout<<count;
         cout << "Number Of paths: " << numberOfPaths << endl;
         cout << "Length of the longest path: " << longest_path_length << endl;
         cout << "Total path length: " << total_path_length << endl;
     }
 };
 
-int main() {
+int main(int argc, char* argv[]) {
     graph g;
+	g.baseline = (argc == 2 && argv[1][0] == 'r' ? true : false);
     g.read_input();
     g.find_paths();
     return 0;
